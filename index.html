@@ -4,13 +4,216 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bonus Calculator</title>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: linear-gradient(to bottom right, #f8fafc, #e2e8f0); min-height: 100vh; padding: 20px; }
+    .container { max-width: 1280px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden; }
+    .header { background: linear-gradient(to right, #2563eb, #1d4ed8); color: white; padding: 32px; }
+    .header h1 { font-size: 36px; font-weight: bold; }
+    .header p { color: #bfdbfe; margin-top: 8px; }
+    .tabs { display: flex; border-bottom: 1px solid #e5e7eb; }
+    .tab { padding: 16px 24px; font-weight: 600; border: none; background: none; cursor: pointer; color: #6b7280; border-bottom: 4px solid transparent; transition: all 0.2s; }
+    .tab.active { color: #2563eb; border-bottom-color: #2563eb; }
+    .tab:hover { color: #374151; }
+    .content { padding: 32px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .buttons { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .btn { padding: 8px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-success { background: #059669; color: white; }
+    .btn-purple { background: #9333ea; color: white; }
+    .emp-card { background: #f9fafb; padding: 24px; margin-bottom: 24px; border-radius: 8px; border: 1px solid #e5e7eb; }
+    .emp-card h3 { font-size: 20px; font-weight: bold; margin-bottom: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px; }
+    .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+    .field select, .field input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; }
+    .field input:disabled { background: #f3f4f6; color: #9ca3af; }
+    .role-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 2px solid #e5e7eb; }
+    table { width: 100%; border-collapse: collapse; }
+    table th { background: #2563eb; color: white; padding: 12px; text-align: left; }
+    table td { padding: 12px; border-bottom: 1px solid #e5e7eb; }
+    table tr:nth-child(even) { background: #f9fafb; }
+    .total { background: #dbeafe; font-weight: bold; }
+    .info { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 16px; margin: 16px 0; border-radius: 4px; }
+    .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 16px 0; border-radius: 4px; }
+    .def { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 16px; margin-bottom: 16px; border-radius: 4px; }
+    .def h4 { font-weight: bold; font-size: 16px; margin-bottom: 8px; }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel" src="./app.js"></script>
+  <div class="container">
+    <div class="header">
+      <h1>Workplace Bonus Calculator</h1>
+      <p>July 2024 - June 2025</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('calculator')">Calculator</button>
+      <button class="tab" onclick="showTab('instructions')">Instructions</button>
+      <button class="tab" onclick="showTab('definitions')">Definitions</button>
+      <button class="tab" onclick="showTab('results')">Results</button>
+    </div>
+
+    <div class="content">
+      <div id="calculator" class="tab-content active">
+        <div class="buttons">
+          <button class="btn btn-success" onclick="saveData()">Save Progress</button>
+          <button class="btn btn-primary" onclick="document.getElementById('loadFile').click()">Load Data</button>
+          <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadData(event)">
+          <button class="btn btn-purple" onclick="exportCSV()">Export CSV</button>
+        </div>
+        <div id="employees"></div>
+      </div>
+
+      <div id="instructions" class="tab-content">
+        <h2 style="margin-bottom:20px">How to Use</h2>
+        <div class="info"><strong>This calculator works right in your browser - no sign-in needed!</strong></div>
+        <ol style="margin-left:20px;line-height:1.8;font-size:18px">
+          <li>Score each employee 0-5 on all 10 categories</li>
+          <li>Sales staff: Monthly sales pre-filled, scores auto-calculate</li>
+          <li>Non-sales staff: Enter Role Performance score (0-5)</li>
+          <li>Check Results tab to see bonus percentages</li>
+          <li>Click Export CSV to download results</li>
+        </ol>
+        <div class="warning">
+          <h3 style="margin-bottom:8px"><strong>Sales Score Thresholds:</strong></h3>
+          <ul style="margin-left:20px">
+            <li>Under $30,000/month = Score 1</li>
+            <li>$30,000-$49,999/month = Score 2</li>
+            <li>$50,000-$79,999/month = Score 3</li>
+            <li>$80,000-$109,999/month = Score 4</li>
+            <li>$110,000+/month = Score 5</li>
+          </ul>
+        </div>
+      </div>
+
+      <div id="definitions" class="tab-content">
+        <h2 style="margin-bottom:24px">Category Definitions</h2>
+        <div class="def"><h4>MONTHS WORKED</h4><p>How many months you were here during the bonus period.</p></div>
+        <div class="def"><h4>WORK ETHIC</h4><p>Do you show up ready to work? Keep a steady pace?</p></div>
+        <div class="def"><h4>INITIATIVE</h4><p>Do you take action without waiting to be told?</p></div>
+        <div class="def"><h4>TEAMWORK</h4><p>Do you help people out when they need it?</p></div>
+        <div class="def"><h4>ABOVE & BEYOND</h4><p>Doing more than the bare minimum when needed.</p></div>
+        <div class="def"><h4>ORGANIZATION</h4><p>Keeping your workspace in order.</p></div>
+        <div class="def"><h4>CLEANUP</h4><p>Not leaving messes for others.</p></div>
+        <div class="def"><h4>NO REPETITION</h4><p>Following instructions the first time.</p></div>
+        <div class="def"><h4>PROFESSIONALISM</h4><p>Respectful, reliable, no drama.</p></div>
+        <div class="def"><h4>TIME SERVED</h4><p>Years with the company matter.</p></div>
+        <div class="def"><h4>ROLE PERFORMANCE</h4><p>Sales: Auto-calculated. Non-sales: Job performance.</p></div>
+      </div>
+
+      <div id="results" class="tab-content">
+        <h2 style="margin-bottom:24px">Results Summary</h2>
+        <table><thead><tr><th>Employee</th><th>Type</th><th style="text-align:center">Sales Score</th><th style="text-align:center">Role Perf</th><th style="text-align:center">Final Score</th><th style="text-align:center">Bonus %</th></tr></thead><tbody id="resultsBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const cats = [
+      {n:'Months Worked',w:0.15},{n:'Work Ethic',w:0.15},{n:'Initiative',w:0.10},
+      {n:'Teamwork',w:0.10},{n:'Above & Beyond',w:0.10},{n:'Organization',w:0.10},
+      {n:'Cleanup',w:0.05},{n:'No Repetition',w:0.10},{n:'Professionalism',w:0.10},{n:'Time Served',w:0.05}
+    ];
+    let emps = [
+      {n:'Jamie',s:true,sc:[0,0,0,0,0,0,0,0,0,0],m:117336.01,r:0},
+      {n:'Johnny',s:true,sc:[0,0,0,0,0,0,0,0,0,0],m:48870.04,r:0},
+      {n:'Neil',s:true,sc:[0,0,0,0,0,0,0,0,0,0],m:51043.90,r:0},
+      {n:'Chris',s:true,sc:[0,0,0,0,0,0,0,0,0,0],m:27569.05,r:0},
+      {n:'Shelley',s:true,sc:[0,0,0,0,0,0,0,0,0,0],m:16924.21,r:0},
+      {n:'Sheena',s:true,sc:[0,0,0,0,0,0,0,0,0,0],m:2163.73,r:0},
+      {n:'Nich',s:false,sc:[0,0,0,0,0,0,0,0,0,0],m:0,r:0},
+      {n:'Aaron',s:false,sc:[0,0,0,0,0,0,0,0,0,0],m:0,r:0}
+    ];
+
+    function showTab(t){
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+      document.getElementById(t).classList.add('active');
+      event.target.classList.add('active');
+      if(t==='results')updateResults();
+    }
+
+    function getSS(m){return m<30000?1:m<50000?2:m<80000?3:m<110000?4:5;}
+    function calcFS(e){let s=0;e.sc.forEach((v,i)=>s+=v*cats[i].w);return s+(e.s?getSS(e.m):e.r)*0.05;}
+
+    function render(){
+      const c=document.getElementById('employees');
+      c.innerHTML='';
+      emps.forEach((e,ei)=>{
+        let h=`<div class="emp-card"><h3>${e.n} <span style="font-weight:normal;font-size:14px;color:#6b7280">(${e.s?'Sales':'Non-Sales'})</span></h3><div class="grid">`;
+        cats.forEach((cat,ci)=>{
+          h+=`<div class="field"><label>${cat.n}</label><select onchange="upSc(${ei},${ci},this.value)">`;
+          for(let i=0;i<=5;i++)h+=`<option value="${i}"${e.sc[ci]===i?' selected':''}>${i}</option>`;
+          h+=`</select></div>`;
+        });
+        h+=`</div><div class="role-section">`;
+        if(e.s){
+          h+=`<div class="field"><label>Avg Monthly Sales ($)</label><input type="number" value="${e.m}" onchange="upM(${ei},this.value)"></div>`;
+          h+=`<div class="field"><label>Sales Score</label><input value="${getSS(e.m)}" disabled></div>`;
+          h+=`<div class="field"><label style="color:#9ca3af">Role Perf</label><input value="N/A" disabled></div>`;
+        }else{
+          h+=`<div class="field"><label>Role Performance (0-5)</label><select onchange="upR(${ei},this.value)">`;
+          for(let i=0;i<=5;i++)h+=`<option value="${i}"${e.r===i?' selected':''}>${i}</option>`;
+          h+=`</select></div><div class="field"><label style="color:#9ca3af">Avg Sales</label><input value="N/A" disabled></div>`;
+          h+=`<div class="field"><label style="color:#9ca3af">Sales Score</label><input value="N/A" disabled></div>`;
+        }
+        h+=`</div></div>`;
+        c.innerHTML+=h;
+      });
+    }
+
+    function upSc(ei,si,v){emps[ei].sc[si]=parseInt(v);}
+    function upM(ei,v){emps[ei].m=parseFloat(v)||0;render();}
+    function upR(ei,v){emps[ei].r=parseInt(v);}
+
+    function updateResults(){
+      let tot=0,res=[];
+      emps.forEach(e=>{const fs=calcFS(e);tot+=fs;res.push({n:e.n,s:e.s,ss:getSS(e.m),r:e.r,fs});});
+      const tb=document.getElementById('resultsBody');
+      tb.innerHTML='';
+      res.forEach(e=>{
+        const bp=tot>0?(e.fs/tot)*100:0;
+        tb.innerHTML+=`<tr><td><strong>${e.n}</strong></td><td>${e.s?'Sales':'Non-Sales'}</td><td style="text-align:center">${e.s?e.ss:'N/A'}</td><td style="text-align:center">${e.s?'N/A':e.r}</td><td style="text-align:center"><strong>${e.fs.toFixed(2)}</strong></td><td style="text-align:center"><strong style="color:#2563eb">${bp.toFixed(2)}%</strong></td></tr>`;
+      });
+      tb.innerHTML+=`<tr class="total"><td colspan="4">TOTAL</td><td style="text-align:center">${tot.toFixed(2)}</td><td style="text-align:center">100.00%</td></tr>`;
+    }
+
+    function saveData(){
+      const d=JSON.stringify(emps);
+      const b=new Blob([d],{type:'application/json'});
+      const url=URL.createObjectURL(b);
+      const a=document.createElement('a');
+      a.href=url;a.download='bonus_data.json';a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function loadData(ev){
+      const f=ev.target.files[0];
+      if(f){
+        const r=new FileReader();
+        r.onload=e=>{try{emps=JSON.parse(e.target.result);render();}catch(err){alert('Error loading file');}};
+        r.readAsText(f);
+      }
+    }
+
+    function exportCSV(){
+      let tot=0,res=[];
+      emps.forEach(e=>{const fs=calcFS(e);tot+=fs;res.push({n:e.n,s:e.s,sc:e.sc,m:e.m,ss:getSS(e.m),r:e.r,fs});});
+      let csv='Employee,Sales,Months Worked,Work Ethic,Initiative,Teamwork,Above & Beyond,Organization,Cleanup,No Repetition,Professionalism,Time Served,Avg Monthly Sales,Sales Score,Role Perf,Final Score,Bonus %\n';
+      res.forEach(e=>{
+        const bp=tot>0?(e.fs/tot)*100:0;
+        csv+=`${e.n},${e.s?'Y':'N'},${e.sc.join(',')},${e.m},${e.ss},${e.s?'N/A':e.r},${e.fs.toFixed(2)},${bp.toFixed(2)}%\n`;
+      });
+      const b=new Blob([csv],{type:'text/csv'});
+      const url=URL.createObjectURL(b);
+      const a=document.createElement('a');
+      a.href=url;a.download='bonus_results.csv';a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    render();
+  </script>
 </body>
 </html>
