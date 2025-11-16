@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/BuffJesus/buffjesus.github.io/static/css/main.f855e6bc.css",
+    "main.js": "/BuffJesus/buffjesus.github.io/static/js/main.7695d8aa.js",
+    "static/js/453.b1239011.chunk.js": "/BuffJesus/buffjesus.github.io/static/js/453.b1239011.chunk.js",
+    "index.html": "/BuffJesus/buffjesus.github.io/index.html",
+    "main.f855e6bc.css.map": "/BuffJesus/buffjesus.github.io/static/css/main.f855e6bc.css.map",
+    "main.7695d8aa.js.map": "/BuffJesus/buffjesus.github.io/static/js/main.7695d8aa.js.map",
+    "453.b1239011.chunk.js.map": "/BuffJesus/buffjesus.github.io/static/js/453.b1239011.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f855e6bc.css",
+    "static/js/main.7695d8aa.js"
+  ]
+}
